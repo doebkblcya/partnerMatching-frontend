@@ -42,9 +42,15 @@
         </van-button>
       </template>
     </van-card>
-    <van-dialog v-model:show="showPasswordDialog" title="请输入密码" show-cancal-button @confirm="doJoinTeam" @cancel="doJoinCancel">
-      <van-field v-model="password" placeholder="请输入密码"/>
-    </van-dialog>
+    <van-dialog 
+    v-model:show="showPasswordDialog" 
+    title="请输入密码" 
+    show-cancel-button 
+    @confirm="doJoinTeam"
+    @cancel="doJoinCancel"
+  >
+    <van-field v-model="password" placeholder="请输入密码"/>
+  </van-dialog>
   </div>
 </template>
 
@@ -80,9 +86,9 @@ onMounted(async () => {
 
 const preJoinTeam = (team: TeamType) => {
   joinTeamId.value = team.id;
-  if (team.status === 0) {
-    doJoinTeam()
-  } else {
+  if (team.status === 0) {  // 公开队伍
+    doJoinTeam();
+  } else {  // 加密队伍
     showPasswordDialog.value = true;
   }
 }
@@ -93,21 +99,29 @@ const doJoinCancel = () => {
 }
 
 //队伍列表加入队伍
-const doJoinTeam = async () => {
+const doJoinTeam = async () => {  // 移除参数，使用 ref 中的值
   if (!joinTeamId.value) {
+    showToast('队伍不存在');
     return;
   }
-  // showPasswordDialog.value = true;
-  const res = await myAxios.post("/team/join", {
-    teamId: joinTeamId.value,
-    password: password.value,
-  });
-  if (res?.data.code === 0) {
-    showToast("加入成功")
-    doJoinCancel();
-  } else {
-    showToast("加入失败" + (res.data.description ? `，${res.data.description} ` : ''));
-    Toast.fail("加入失败" + (res.data.description ? `，${res.data.description} ` : ''));
+  
+  try {
+    const res = await myAxios.post('/team/join', {
+      teamId: joinTeamId.value,  // 使用 ref 中存储的 teamId
+      password: password.value || ''  // 使用 ref 中存储的 password
+    });
+    if (res?.data?.code === 0) {
+      showToast('加入成功');
+      showPasswordDialog.value = false;  // 关闭密码对话框
+      password.value = '';  // 清空密码
+      joinTeamId.value = 0;  // 清空队伍id
+      // 如果需要刷新页面
+      window.location.reload();
+    } else {
+      showToast(res?.data?.message ?? '加入失败');
+    }
+  } catch (error) {
+    showToast('加入失败');
   }
 }
 

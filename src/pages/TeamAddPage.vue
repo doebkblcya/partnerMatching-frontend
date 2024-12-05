@@ -99,10 +99,9 @@ const initFormData = {
   "name": "",
   "description": "",
   "expireTime": "",//这里不能用null(我也不明白为啥)
-  "maxNum": 0,
+  "maxNum": 3,
   "password": "",
   "status": 0,
-  "userId": 0
 }
 
 const currentDate = ref(['2022', '06', '01']);		//定义一个初始时间(年月日)
@@ -132,16 +131,15 @@ const onSubmit = async () => {
     status: Number(addTeamData.value.status)
   }
   //todo 前端数据校验
-  const res = await myAxios.post("/team/add",postData);
-  // console.log(res.data)
+  const res = await myAxios.post("/team/add", postData);
   if (res?.data.code === 0 && res.data){
     showToast("添加成功");
     router.push({
       path:'/team',
-      replace:true,// 防止用户回退到此页面
+      replace:true,
     });
   }else {
-    showToast("添加失败")
+    showToast(res.data.message || "添加失败")
   }
 }
 
@@ -151,4 +149,4 @@ const onSubmit = async () => {
 
 <style scoped>
 
-</style>>
+</style>
